@@ -3,16 +3,18 @@ import mediapipe as mp
 import pyautogui
 import time
 import math
-import numpy as np # Numpy को इम्पोर्ट करें
+import numpy as np # Numpy 
 
-# --- सेटअप ---
+#Setup
+
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.7, min_tracking_confidence=0.7)
 mp_draw = mp.solutions.drawing_utils
 
 cap = cv2.VideoCapture(0)
 
-# --- जेस्चर कंट्रोल वेरिएबल्स ---
+#Geture-Control-Variable
+
 gesture_cooldown = 1.5
 last_gesture_time = 0
 initial_wrist_x = None
@@ -22,7 +24,8 @@ screen_w, screen_h = pyautogui.size() # स्क्रीन का साइ�
 
 print("प्रोग्राम शुरू हो रहा है... Esc दबाकर बाहर निकलें।")
 
-# --- मुख्य लूप ---
+#imp-Loop
+
 while cap.isOpened():
     success, image = cap.read()
     if not success:
@@ -57,25 +60,26 @@ while cap.isOpened():
             total_fingers = fingers.count(1)
             cv2.putText(image, f'Fingers: {total_fingers}', (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
 
-            # ===== नया फीचर: लेजर पॉइंटर मोड =====
-            # अगर सिर्फ तर्जनी उठी हुई है
+            #New-Feature-Lazer-Pointer-Mode
+            
+            # If only the index finger is raised
             if total_fingers == 1 and fingers[1] == 1:
                 cv2.putText(image, 'Pointer Mode', (10, 110), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
-                # तर्जनी के सिरे (landmark 8) के कोऑर्डिनेट्स प्राप्त करें
+                # Get the coordinates of the tip of the index finger (landmark 8)
                 index_x, index_y = landmark_list[8][1], landmark_list[8][2]
                 
-                # स्क्रीन पर एक छोटा सा वृत्त बनाएं जहाँ पॉइंटर है
+                # Draw a small circle on the screen where the pointer is
                 cv2.circle(image, (index_x, index_y), 10, (0, 0, 255), cv2.FILLED)
 
-                # कैमरे के कोऑर्डिनेट्स को स्क्रीन के कोऑर्डिनेट्स में बदलें
+                # Convert camera coordinates to screen coordinates
                 # np.interp(value, [input_range_start, input_range_end], [output_range_start, output_range_end])
-                screen_x = np.interp(index_x, [w*0.2, w*0.8], [0, screen_w]) # थोड़ी पैडिंग ताकि कोनों में न जाए
+                screen_x = np.interp(index_x, [w*0.2, w*0.8], [0, screen_w]) # Add some padding so it doesn’t go into the corners
                 screen_y = np.interp(index_y, [h*0.2, h*0.8], [0, screen_h])
                 
-                # माउस को उस पोजीशन पर ले जाएं
+                # Move the mouse to that position
                 pyautogui.moveTo(screen_x, screen_y)
 
-            # ===== स्वाइप जेस्चर (जब 5 उंगलियां खुली हों) =====
+            # ===== Swipe Gesture (when all 5 fingers are open) =====
             elif total_fingers == 5:
                 current_time = time.time()
                 if current_time - last_gesture_time > gesture_cooldown:
