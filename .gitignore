@@ -1,0 +1,16 @@
+# Virtual Environment
+venv/
+
+# Datasets
+dataset/
+
+# Model files
+*.h5
+*.tflite
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Screenshot files
+screenshot_*.png
