@@ -9,8 +9,8 @@ if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
 # Aap kitne gestures (classes) chahte hain aur har gesture ki kitni images?
-num_of_classes = 3
-num_of_samples = 200 # Har gesture ke liye 200 images
+num_of_classes = 6
+num_of_samples = 500
 
 # Camera shuru karo
 cap = cv2.VideoCapture(0)
@@ -30,6 +30,9 @@ for i in range(num_of_classes):
     ready_text = f"Ready? Show '{class_name}'. Press 'S' to start."
     while True:
         ret, frame = cap.read()
+        if not ret:
+            print("Error: Failed to capture frame.")
+            break
         cv2.putText(frame, ready_text, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         cv2.imshow('frame', frame)
         if cv2.waitKey(25) == ord('s'):
@@ -39,15 +42,21 @@ for i in range(num_of_classes):
     counter = 0
     while counter < num_of_samples:
         ret, frame = cap.read()
+        if not ret:
+            print("Error: Failed to capture frame.")
+            break
         
         # Image save karo
         image_path = os.path.join(class_dir, f'{counter}.jpg')
         cv2.imwrite(image_path, frame)
 
         # Screen par counter dikhao
-        cv2.putText(frame, f'Collecting: {counter}/{num_of_samples}', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(frame, f'Collecting: {counter+1}/{num_of_samples}', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.imshow('frame', frame)
-        cv2.waitKey(25) # Thoda delay
+        
+        # === YAHAN BADLAAV KIYA GAYA HAI: Delay badhaya gaya ===
+        if cv2.waitKey(150) & 0xFF == ord('q'): # Changed from 25 to 150
+            break
         
         counter += 1
 
