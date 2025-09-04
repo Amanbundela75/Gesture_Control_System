@@ -7,11 +7,11 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dens
 
 # --- Step 1: Dataset aur Parameters ko Set karna ---
 
-# === YAHAN BADLAAV KIYA GAYA HAI ===
-# Path ko update karke 'asl_alphabet_train' folder point kiya gaya hai
-DATA_PATH = "dataset/asl_alphabet_train/" 
+# === YAHAN EXACT PATH UPDATE KIYA GAYA HAI ===
+# Screenshot ke anusaar, gesture folders ek aur level andar hain
+DATA_PATH = "dataset/asl_alphabet_train/asl_alphabet_train/" 
 
-MODEL_NAME = "hand_gesture_model_asl.h5" # Model ka naya naam
+MODEL_NAME = "hand_gesture_model_asl.h5"
 IMG_WIDTH, IMG_HEIGHT = 64, 64
 EPOCHS = 30
 BATCH_SIZE = 32
@@ -19,7 +19,7 @@ BATCH_SIZE = 32
 # --- Step 2 & 3: Dataset Load, Preprocess aur Split karna ---
 print("Dataset generator taiyaar kiya ja raha hai...")
 image_size = (IMG_WIDTH, IMG_HEIGHT)
-validation_split = 0.2 # Using 20% of the data for validation
+validation_split = 0.2
 
 # Check if the directory exists and is not empty
 if not os.path.exists(DATA_PATH) or not os.listdir(DATA_PATH):
