@@ -1,107 +1,52 @@
-import cv2
-import numpy as np
-import os
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, Rescaling, RandomFlip, RandomRotation, RandomZoom
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, Rescaling
 
-# --- Step 1: Dataset aur Parameters ko Set karna ---
-
-# === YAHAN EXACT PATH UPDATE KIYA GAYA HAI ===
-# Screenshot ke anusaar, gesture folders ek aur level andar hain
-DATA_PATH = "dataset/asl_alphabet_train/asl_alphabet_train/" 
-
-MODEL_NAME = "hand_gesture_model_asl.h5"
+# Parameters
+DATA_PATH = "dataset/" 
+MODEL_NAME = "simple_gesture_model.h5"
 IMG_WIDTH, IMG_HEIGHT = 64, 64
-EPOCHS = 30
+EPOCHS = 15
 BATCH_SIZE = 32
 
-# --- Step 2 & 3: Dataset Load, Preprocess aur Split karna ---
-print("Dataset generator taiyaar kiya ja raha hai...")
-image_size = (IMG_WIDTH, IMG_HEIGHT)
-validation_split = 0.2
-
-# Check if the directory exists and is not empty
-if not os.path.exists(DATA_PATH) or not os.listdir(DATA_PATH):
-    print(f"Error: The directory '{DATA_PATH}' is empty or does not exist.")
-    print("Please make sure your dataset is correctly placed.")
-    exit()
-
+# Load dataset
 train_dataset = tf.keras.utils.image_dataset_from_directory(
-    DATA_PATH,
-    validation_split=validation_split,
-    subset="training",
-    seed=123,
-    image_size=image_size,
-    batch_size=BATCH_SIZE,
-    color_mode='grayscale'
+    DATA_PATH, validation_split=0.2, subset="training", seed=123,
+    image_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, color_mode='grayscale'
 )
-
 validation_dataset = tf.keras.utils.image_dataset_from_directory(
-    DATA_PATH,
-    validation_split=validation_split,
-    subset="validation",
-    seed=123,
-    image_size=image_size,
-    batch_size=BATCH_SIZE,
-    color_mode='grayscale'
+    DATA_PATH, validation_split=0.2, subset="validation", seed=123,
+    image_size=(IMG_HEIGHT, IMG_WIDTH), batch_size=BATCH_SIZE, color_mode='grayscale'
 )
 
 gesture_names = train_dataset.class_names
 num_classes = len(gesture_names)
-print(f"Total {num_classes} gestures found: {gesture_names}")
+print(f"Gestures found: {gesture_names}")
 
-AUTOTUNE = tf.data.AUTOTUNE
-train_dataset = train_dataset.cache().prefetch(buffer_size=AUTOTUNE)
-validation_dataset = validation_dataset.cache().prefetch(buffer_size=AUTOTUNE)
-
-# --- Step 4: CNN Model Banana (Data Augmentation ke Saath) ---
-data_augmentation = Sequential([
-    RandomFlip("horizontal"),
-    RandomRotation(0.1),
-    RandomZoom(0.2),
-])
-
-print("CNN model with Data Augmentation banaya ja raha hai...")
+# Build Model
 model = Sequential([
     Rescaling(1./255, input_shape=(IMG_WIDTH, IMG_HEIGHT, 1)),
-    data_augmentation,
-    Conv2D(32, (3, 3), activation='relu'),
-    MaxPooling2D(pool_size=(2, 2)),
-    Conv2D(64, (3, 3), activation='relu'),
-    MaxPooling2D(pool_size=(2, 2)),
-    Conv2D(128, (3, 3), activation='relu'),
-    MaxPooling2D(pool_size=(2, 2)),
+    Conv2D(32, (3, 3), activation='relu'), MaxPooling2D(pool_size=(2, 2)),
+    Conv2D(64, (3, 3), activation='relu'), MaxPooling2D(pool_size=(2, 2)),
     Flatten(),
     Dropout(0.5),
     Dense(128, activation='relu'),
     Dense(num_classes, activation='softmax')
 ])
 
-# --- Step 5: Model ko Compile karna ---
-model.compile(
-    optimizer='adam',
-    loss='sparse_categorical_crossentropy',
-    metrics=['accuracy']
-)
+# Compile and Train
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model.fit(train_dataset, epochs=EPOCHS, validation_data=validation_dataset)
 
-# --- Step 6: Model ko Train karna ---
-print("Model training shuru ho rahi hai...")
-history = model.fit(
-    train_dataset,
-    epochs=EPOCHS,
-    validation_data=validation_dataset,
-    verbose=1
-)
-
-# --- Step 7 & 8: Model ko Evaluate aur Save karna ---
+# === YAHAN CODE ADD KIYA GAYA HAI ===
+# Final evaluation on the validation set
+print("\n--- Final Evaluation ---")
 loss, accuracy = model.evaluate(validation_dataset, verbose=0)
-print(f"\nTest Accuracy: {accuracy * 100:.2f}%")
-print(f"Test Loss: {loss:.4f}")
+print(f"Validation Accuracy: {accuracy * 100:.2f}%")
+print(f"Validation Loss: {loss:.4f}")
 
+# Save
 model.save(MODEL_NAME)
-print(f"Model '{MODEL_NAME}' naam se save ho gaya hai.")
-
 with open("gesture_labels.txt", "w") as f:
     f.write("\n".join(gesture_names))
-print("Gesture labels 'gesture_labels.txt' file me save ho gaye hain.")
+print(f"\nModel saved as {MODEL_NAME} and labels saved to gesture_labels.txt")
