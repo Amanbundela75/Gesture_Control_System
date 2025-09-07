@@ -10,7 +10,8 @@ if not os.path.exists(DATA_DIR):
 
 # Aap kitne gestures (classes) chahte hain aur har gesture ki kitni images?
 num_of_classes = 6
-num_of_samples = 500
+# === YAHAN BADLAAV KIYA GAYA HAI ===
+num_of_samples = 200 # Changed from 500 to 200
 
 # Camera shuru karo
 cap = cv2.VideoCapture(0)
@@ -54,8 +55,8 @@ for i in range(num_of_classes):
         cv2.putText(frame, f'Collecting: {counter+1}/{num_of_samples}', (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         cv2.imshow('frame', frame)
         
-        # === YAHAN BADLAAV KIYA GAYA HAI: Delay badhaya gaya ===
-        if cv2.waitKey(150) & 0xFF == ord('q'): # Changed from 25 to 150
+        # Delay and exit option
+        if cv2.waitKey(200) & 0xFF == ord('q'):
             break
         
         counter += 1
